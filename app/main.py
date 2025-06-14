@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from app.routes import workouts
 from app.auth import users
 from dotenv import load_dotenv
-from app.db.dynamo_client import create_workouts_table
+from app.db.dynamo_client import create_workouts_table, create_users_table
+
 
 
 load_dotenv()
@@ -10,6 +11,7 @@ load_dotenv()
 app = FastAPI()
 
 create_workouts_table()
+create_users_table()
 
 app.include_router(users.router)
 app.include_router(workouts.router)

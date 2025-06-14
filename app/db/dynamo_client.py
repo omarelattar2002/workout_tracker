@@ -37,3 +37,27 @@ def create_workouts_table():
     # Wait for it to be active
     table.wait_until_exists()
     print("✅ 'workouts' table created.")
+
+
+def create_users_table():
+    existing_tables = list(dynamodb.tables.all())
+    if any(table.name == "users" for table in existing_tables):
+        print("✅ 'users' table already exists.")
+        return
+
+    table = dynamodb.create_table(
+        TableName='users',
+        KeySchema=[
+            {'AttributeName': 'username', 'KeyType': 'HASH'}  # Partition key
+        ],
+        AttributeDefinitions=[
+            {'AttributeName': 'username', 'AttributeType': 'S'}
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 5,
+            'WriteCapacityUnits': 5
+        }
+    )
+
+    table.wait_until_exists()
+    print("✅ 'users' table created.")
