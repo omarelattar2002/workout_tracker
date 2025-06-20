@@ -3,12 +3,20 @@ from app.routes import workouts
 from app.auth import users
 from dotenv import load_dotenv
 from app.db.dynamo_client import create_workouts_table, create_users_table
-
+from fastapi.middleware.cors import CORSMiddleware
 
 
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # your React frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 create_workouts_table()
 create_users_table()
