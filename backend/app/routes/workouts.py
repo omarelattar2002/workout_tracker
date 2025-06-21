@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from boto3.dynamodb.conditions import Key
 from app.db.dynamo_client import dynamodb
@@ -10,6 +10,13 @@ class Workout(BaseModel):
     user_id: str
     workout_id: str
     type: str
+    sets: int
+    reps:int
+
+class UpdateWorkout(BaseModel):
+    new_type:str
+    new_sets:int
+    new_reps:int
 
 @router.post("/workouts")
 def create_workout(workout: Workout, current_user: str = Depends(get_current_user)):
@@ -20,7 +27,9 @@ def create_workout(workout: Workout, current_user: str = Depends(get_current_use
     table.put_item(Item={
         "user_id": workout.user_id,
         "workout_id": workout.workout_id,
-        "type": workout.type
+        "type": workout.type,
+        "sets": workout.sets,
+        "reps" : workout.reps
     })
     return {"message": "Workout created successfully"}
 
@@ -34,7 +43,12 @@ def get_workouts(user_id: str, current_user: str = Depends(get_current_user)):
     return {"workouts": response.get("Items", [])}
 
 @router.put("/workouts/{user_id}/{workout_id}")
-def update_workout(user_id: str, workout_id: str, new_type: str, current_user: str = Depends(get_current_user)):
+def update_workout(
+    user_id: str,
+    workout_id: str,
+    update: UpdateWorkout,
+    current_user: str = Depends(get_current_user)
+):
     if user_id != current_user:
         raise HTTPException(status_code=403, detail="Not authorized to update this workout")
 
@@ -46,9 +60,17 @@ def update_workout(user_id: str, workout_id: str, new_type: str, current_user: s
 
     table.update_item(
         Key={"user_id": user_id, "workout_id": workout_id},
-        UpdateExpression="SET #t = :new",
-        ExpressionAttributeNames={"#t": "type"},
-        ExpressionAttributeValues={":new": new_type}
+        UpdateExpression="SET #t = :t, #s = :s, #r = :r",
+        ExpressionAttributeNames={
+            "#t": "type",
+            "#s": "sets",
+            "#r": "reps"
+        },
+        ExpressionAttributeValues={
+            ":t": update.new_type,
+            ":s": update.new_sets,
+            ":r": update.new_reps
+        }
     )
 
     return {"message": "Workout updated successfully"}
@@ -59,17 +81,10 @@ def delete_workout(user_id: str, workout_id: str, current_user: str = Depends(ge
         raise HTTPException(status_code=403, detail="Not authorized to delete this workout")
 
     table = dynamodb.Table("workouts")
-    existing = table.get_item(Key={
-        "user_id": user_id,
-        "workout_id": workout_id
-    })
+    existing = table.get_item(Key={"user_id": user_id, "workout_id": workout_id})
 
     if "Item" not in existing:
         raise HTTPException(status_code=404, detail="Workout not found")
 
-    table.delete_item(Key={
-        "user_id": user_id,
-        "workout_id": workout_id
-    })
-
+    table.delete_item(Key={"user_id": user_id, "workout_id": workout_id})
     return {"message": "Workout has been deleted"}
