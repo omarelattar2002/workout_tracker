@@ -12,11 +12,13 @@ class Workout(BaseModel):
     type: str
     sets: int
     reps:int
+    weight: str
 
 class UpdateWorkout(BaseModel):
     new_type:str
     new_sets:int
     new_reps:int
+    new_weight: str | None = None
 
 @router.post("/workouts")
 def create_workout(workout: Workout, current_user: str = Depends(get_current_user)):
@@ -29,7 +31,8 @@ def create_workout(workout: Workout, current_user: str = Depends(get_current_use
         "workout_id": workout.workout_id,
         "type": workout.type,
         "sets": workout.sets,
-        "reps" : workout.reps
+        "reps" : workout.reps,
+        "weight":workout.weight
     })
     return {"message": "Workout created successfully"}
 
@@ -58,19 +61,25 @@ def update_workout(
     if "Item" not in existing:
         raise HTTPException(status_code=404, detail="This workout does not exist")
 
+    # Dynamic update expression based on what's provided
+    update_expr = ["#t = :t", "#s = :s", "#r = :r"]
+    expr_attr_names = {"#t": "type", "#s": "sets", "#r": "reps"}
+    expr_attr_values = {
+        ":t": update.new_type,
+        ":s": update.new_sets,
+        ":r": update.new_reps
+    }
+
+    if update.new_weight is not None:
+        update_expr.append("#w = :w")
+        expr_attr_names["#w"] = "weight"
+        expr_attr_values[":w"] = update.new_weight
+
     table.update_item(
         Key={"user_id": user_id, "workout_id": workout_id},
-        UpdateExpression="SET #t = :t, #s = :s, #r = :r",
-        ExpressionAttributeNames={
-            "#t": "type",
-            "#s": "sets",
-            "#r": "reps"
-        },
-        ExpressionAttributeValues={
-            ":t": update.new_type,
-            ":s": update.new_sets,
-            ":r": update.new_reps
-        }
+        UpdateExpression="SET " + ", ".join(update_expr),
+        ExpressionAttributeNames=expr_attr_names,
+        ExpressionAttributeValues=expr_attr_values
     )
 
     return {"message": "Workout updated successfully"}

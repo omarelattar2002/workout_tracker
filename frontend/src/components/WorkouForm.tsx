@@ -6,6 +6,9 @@ type Props = {
 
 export default function WorkoutForm({ onWorkoutAdded }: Props) {
   const [type, setType] = useState("");
+  const [sets, setSets] = useState(0);
+  const [reps, setReps] = useState(0);
+  const [weight, setWeight] = useState("");
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
@@ -41,8 +44,11 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
       },
       body: JSON.stringify({
         user_id: username,
-        workout_id: Date.now().toString(), // unique ID using timestamp
-        type: type
+        workout_id: Date.now().toString(),
+        type,
+        sets,
+        reps,
+        weight
       })
     })
       .then((res) => {
@@ -51,7 +57,10 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
       })
       .then(() => {
         setType("");
-        onWorkoutAdded(); // refresh the dashboard
+        setSets(0);
+        setReps(0);
+        setWeight("");
+        onWorkoutAdded();
       })
       .catch(() => setError("Something went wrong"));
   };
@@ -65,6 +74,27 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
         placeholder="Workout type"
         value={type}
         onChange={(e) => setType(e.target.value)}
+        style={{ marginRight: "0.5rem" }}
+      />
+      <input
+        type="number"
+        placeholder="Sets"
+        value={sets}
+        onChange={(e) => setSets(Number(e.target.value))}
+        style={{ marginRight: "0.5rem" }}
+      />
+      <input
+        type="number"
+        placeholder="Reps"
+        value={reps}
+        onChange={(e) => setReps(Number(e.target.value))}
+        style={{ marginRight: "0.5rem" }}
+      />
+      <input
+        type="text"
+        placeholder="Weight (e.g., 15 kg or 20 lb)"
+        value={weight}
+        onChange={(e) => setWeight(e.target.value)}
         style={{ marginRight: "0.5rem" }}
       />
       <button type="submit">Add</button>
