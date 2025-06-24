@@ -1,0 +1,46 @@
+.workout-form {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: white;
+  color: black;
+}
+
+.workout-form h3 {
+  color: #003366;
+  margin-bottom: 0.5rem;
+}
+
+.workout-form input {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.workout-form button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.workout-form button:hover {
+  opacity: 0.9;
+}
+
+.workout-form p {
+  color: red;
+  margin-top: 0;
+}

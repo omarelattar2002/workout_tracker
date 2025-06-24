@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { login } from "../api/auth";
+import "../styles/AuthPages.css";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -19,23 +20,23 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ maxWidth: "400px", margin: "auto", padding: "1rem" }}>
+        <div className="auth-container">
             <h2>Log In</h2>
-            <form onSubmit={handleSubmit}>
+            <form className="auth-form" onSubmit={handleSubmit}>
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                /><br /><br />
+                />
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                /><br /><br />
+                />
                 <button type="submit">Log In</button>
             </form>
             {message && <p>{message}</p>}

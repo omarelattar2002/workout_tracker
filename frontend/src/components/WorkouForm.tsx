@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../styles/DashboardPage.css"
 
 type Props = {
   onWorkoutAdded: () => void;
@@ -66,38 +67,36 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>Add a Workout</h3>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input
-        type="text"
-        placeholder="Workout type"
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        style={{ marginRight: "0.5rem" }}
-      />
-      <input
-        type="number"
-        placeholder="Sets"
-        value={sets}
-        onChange={(e) => setSets(Number(e.target.value))}
-        style={{ marginRight: "0.5rem" }}
-      />
-      <input
-        type="number"
-        placeholder="Reps"
-        value={reps}
-        onChange={(e) => setReps(Number(e.target.value))}
-        style={{ marginRight: "0.5rem" }}
-      />
-      <input
-        type="text"
-        placeholder="Weight (e.g., 15 kg or 20 lb)"
-        value={weight}
-        onChange={(e) => setWeight(e.target.value)}
-        style={{ marginRight: "0.5rem" }}
-      />
-      <button type="submit">Add</button>
-    </form>
+<form className="workout-form" onSubmit={handleSubmit}>
+  <h3>Add a Workout</h3>
+  {error && <p>{error}</p>}
+
+  <input
+    type="text"
+    placeholder="Workout type"
+    value={type}
+    onChange={(e) => setType(e.target.value)}
+  />
+  <input
+    type="number"
+    placeholder="Sets"
+    value={sets}
+    onChange={(e) => setSets(Number(e.target.value))}
+  />
+  <input
+    type="number"
+    placeholder="Reps"
+    value={reps}
+    onChange={(e) => setReps(Number(e.target.value))}
+  />
+  <input
+    type="text"
+    placeholder="Weight (e.g., 15 kg or 20 lb)"
+    value={weight}
+    onChange={(e) => setWeight(e.target.value)}
+  />
+  <button type="submit">Add</button>
+</form>
+
   );
 }

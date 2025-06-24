@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import WorkoutForm from "../components/WorkouForm";
+import "../styles/DashboardPage.css"
 
 type Workout = {
   user_id: string;
@@ -103,53 +104,52 @@ const handleUpdate = (id: string) => {
         return null;
     }
 
-    return (
-        <div style={{ maxWidth: "600px", margin: "auto", padding: "1rem" }}>
-            <h1>Workout Dashboard</h1>
+return (
+  <div className="dashboard-container">
+    <h1>Workout Dashboard</h1>
 
-            <button onClick={() => {
-                localStorage.removeItem("token");
-                window.location.href = "/login";
-            }}>
-                Logout
-            </button>
 
-            {message && <p>{message}</p>}
-            <WorkoutForm onWorkoutAdded={fetchWorkouts} />
-            <h3>Your Workouts:</h3>
-<ul>
-  {workouts.map((w) => (
-    <li key={w.workout_id}>
-{editingId === w.workout_id ? (
-  <>
-    <input value={editedType} onChange={(e) => setEditedType(e.target.value)} />
-    <input type="number" value={editedSets} onChange={(e) => setEditedSets(Number(e.target.value))} />
-    <input type="number" value={editedReps} onChange={(e) => setEditedReps(Number(e.target.value))} />
-    <input value={editedWeight} onChange={(e) => setEditedWeight(e.target.value)} placeholder="e.g., 15 kg or 20 lb" />
-    <button onClick={() => handleUpdate(w.workout_id)}>Save</button>
-    <button onClick={() => setEditingId(null)}>Cancel</button>
-  </>
-) : (
-  <>
-    {w.type} — {w.sets} sets x {w.reps} reps — {w.weight}
-    <button onClick={() => {
-      setEditingId(w.workout_id);
-      setEditedType(w.type);
-      setEditedSets(w.sets);
-      setEditedReps(w.reps);
-      setEditedWeight(w.weight);
+
+    {message && <p>{message}</p>}
+
+    <WorkoutForm onWorkoutAdded={fetchWorkouts} />
+
+    <h3>Your Workouts:</h3>
+    <ul className="workout-list">
+      {workouts.map((w) => (
+        <li key={w.workout_id} className="workout-item">
+          {editingId === w.workout_id ? (
+            <>
+              <input value={editedType} onChange={(e) => setEditedType(e.target.value)} />
+              <input type="number" value={editedSets} onChange={(e) => setEditedSets(Number(e.target.value))} placeholder="Sets" />
+              <input type="number" value={editedReps} onChange={(e) => setEditedReps(Number(e.target.value))} placeholder="Reps" />
+              <input value={editedWeight} onChange={(e) => setEditedWeight(e.target.value)} placeholder="e.g., 15 kg or 20 lb" />
+              <button className="workout-button" onClick={() => handleUpdate(w.workout_id)}>Save</button>
+              <button className="workout-button" onClick={() => setEditingId(null)}>Cancel</button>
+            </>
+          ) : (
+            <>
+              {w.type} — {w.sets} sets x {w.reps} reps — {w.weight}
+              <button className="workout-button" onClick={() => {
+                setEditingId(w.workout_id);
+                setEditedType(w.type);
+                setEditedSets(w.sets);
+                setEditedReps(w.reps);
+                setEditedWeight(w.weight);
+              }}>Edit</button>
+              <button className="workout-button" onClick={() => handleDelete(w.workout_id)}>Delete</button>
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
+        <button className="logout-button" onClick={() => {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }}>
-      Edit
+      Logout
     </button>
-    <button onClick={() => handleDelete(w.workout_id)}>Delete</button>
-  </>
-)}
+  </div>
+);
 
-    </li>
-  ))}
-</ul>
-
-
-        </div>
-    );
 }
