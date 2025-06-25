@@ -1,28 +1,28 @@
 import { useState } from "react";
-import "../styles/DashboardPage.css"
+import "../styles/DashboardPage.css";
 
 type Props = {
   onWorkoutAdded: () => void;
+  onCancel: () => void;
 };
 
-export default function WorkoutForm({ onWorkoutAdded }: Props) {
+export default function WorkoutForm({ onWorkoutAdded, onCancel }: Props) {
   const [type, setType] = useState("");
-  const [sets, setSets] = useState(0);
-  const [reps, setReps] = useState(0);
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
 
-  function getUsernameFromToken(token: string | null): string | null {
-    if (!token) return null;
+  const getUsername = (tok: string | null) => {
+    if (!tok) return null;
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.sub;
+      return JSON.parse(atob(tok.split(".")[1])).sub;
     } catch {
       return null;
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
       return;
     }
 
-    const username = getUsernameFromToken(token);
+    const username = getUsername(token);
     if (!token || !username) {
       setError("You must be logged in");
       return;
@@ -47,19 +47,16 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
         user_id: username,
         workout_id: Date.now().toString(),
         type,
-        sets,
-        reps,
+        sets: Number(sets),
+        reps: Number(reps),
         weight
       })
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to add workout");
-        return res.json();
-      })
-      .then(() => {
+      .then((r) => {
+        if (!r.ok) throw new Error();
         setType("");
-        setSets(0);
-        setReps(0);
+        setSets("");
+        setReps("");
         setWeight("");
         onWorkoutAdded();
       })
@@ -67,36 +64,46 @@ export default function WorkoutForm({ onWorkoutAdded }: Props) {
   };
 
   return (
-<form className="workout-form" onSubmit={handleSubmit}>
-  <h3>Add a Workout</h3>
-  {error && <p>{error}</p>}
-
-  <input
-    type="text"
-    placeholder="Workout type"
-    value={type}
-    onChange={(e) => setType(e.target.value)}
-  />
-  <input
-    type="number"
-    placeholder="Sets"
-    value={sets}
-    onChange={(e) => setSets(Number(e.target.value))}
-  />
-  <input
-    type="number"
-    placeholder="Reps"
-    value={reps}
-    onChange={(e) => setReps(Number(e.target.value))}
-  />
-  <input
-    type="text"
-    placeholder="Weight (e.g., 15 kg or 20 lb)"
-    value={weight}
-    onChange={(e) => setWeight(e.target.value)}
-  />
-  <button type="submit">Add</button>
-</form>
-
+    <form className="workout-form" onSubmit={handleSubmit}>
+      {error && <p className="msg">{error}</p>}
+      <input
+        type="text"
+        placeholder="Workout type"
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Sets"
+        value={sets}
+        onChange={(e) => setSets(e.target.value)}
+        min="0"
+      />
+      <input
+        type="number"
+        placeholder="Reps"
+        value={reps}
+        onChange={(e) => setReps(e.target.value)}
+        min="0"
+      />
+      <input
+        type="text"
+        placeholder="Weight (e.g., 15 kg or 20 lb)"
+        value={weight}
+        onChange={(e) => setWeight(e.target.value)}
+      />
+      <div className="row">
+        <button className="primary-btn half" type="submit">
+          Add
+        </button>
+        <button
+          type="button"
+          className="primary-btn half"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }

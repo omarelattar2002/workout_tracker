@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import WorkoutForm from "../components/WorkouForm";
-import "../styles/DashboardPage.css"
+import "../styles/DashboardPage.css";
 
 type Workout = {
   user_id: string;
@@ -8,148 +8,197 @@ type Workout = {
   type: string;
   sets: number;
   reps: number;
-  weight:string;
+  weight: string;
 };
-
 
 export default function DashboardPage() {
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
-    const [message, setMessage] = useState("");
-    const [redirect, setRedirect] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editedType, setEditedType] = useState("");
-    const [editedSets, setEditedSets] = useState(0);
-    const [editedReps, setEditedReps] = useState(0);
-    const [editedWeight, setEditedWeight] = useState("");
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [message, setMessage] = useState("");
+  const [redirect, setRedirect] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedType, setEditedType] = useState("");
+  const [editedSets, setEditedSets] = useState("");
+  const [editedReps, setEditedReps] = useState("");
+  const [editedWeight, setEditedWeight] = useState("");
 
-    const token = localStorage.getItem("token");
-    const username = getUsernameFromToken(token);
+  const token = localStorage.getItem("token");
+  const username = getUsernameFromToken(token);
 
-    function getUsernameFromToken(token: string | null): string | null {
-        if (!token) return null;
-        try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            return payload.sub;
-        } catch {
-            return null;
-        }
+  function getUsernameFromToken(tok: string | null): string | null {
+    if (!tok) return null;
+    try {
+      return JSON.parse(atob(tok.split(".")[1])).sub;
+    } catch {
+      return null;
     }
+  }
 
-    const fetchWorkouts = () => {
-        if (!token || !username) return;
-        fetch(`http://localhost:8000/workouts/${username}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then((res) => res.json())
-            .then((data) => setWorkouts(data.workouts || []))
-            .catch(() => setMessage("Failed to fetch workouts"));
-    };
-
-const handleUpdate = (id: string) => {
-  if (!token || !username) return;
-
-  fetch(`http://localhost:8000/workouts/${username}/${id}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      new_type: editedType,
-      new_sets: editedSets,
-      new_reps: editedReps,
-      new_weight: editedWeight
+  const fetchWorkouts = () => {
+    if (!token || !username) return;
+    fetch(`http://localhost:8000/workouts/${username}`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      setEditingId(null);
-      fetchWorkouts();
+      .then((r) => r.json())
+      .then((d) => setWorkouts(d.workouts || []))
+      .catch(() => setMessage("Failed to fetch workouts"));
+  };
+
+  const handleUpdate = (id: string) => {
+    if (!token || !username) return;
+    fetch(`http://localhost:8000/workouts/${username}/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        new_type: editedType,
+        new_sets: Number(editedSets),
+        new_reps: Number(editedReps),
+        new_weight: editedWeight
+      })
     })
-    .catch(() => setMessage("Failed to update workout"));
-};
-
-
-
-    const handleDelete = (id: string) => {
-        if (!token || !username) return;
-
-        fetch(`http://localhost:8000/workouts/${username}/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error();
-                fetchWorkouts(); // refresh list
-            })
-            .catch(() => setMessage("Failed to delete workout"));
-    };
-
-
-    useEffect(() => {
-        if (!token || !username) {
-            setRedirect(true);
-            return;
-        }
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        setEditingId(null);
         fetchWorkouts();
-    }, []);
+      })
+      .catch(() => setMessage("Failed to update workout"));
+  };
 
-    if (redirect) {
-        window.location.href = "/login";
-        return null;
+  const handleDelete = (id: string) => {
+    if (!token || !username) return;
+    fetch(`http://localhost:8000/workouts/${username}/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        fetchWorkouts();
+      })
+      .catch(() => setMessage("Failed to delete workout"));
+  };
+
+  useEffect(() => {
+    if (!token || !username) {
+      setRedirect(true);
+      return;
     }
+    fetchWorkouts();
+  }, []);
 
-return (
-  <div className="dashboard-container">
-    <h1>Workout Dashboard</h1>
+  if (redirect) {
+    window.location.href = "/login";
+    return null;
+  }
 
+  return (
+    <div className="dashboard-container">
+      <div className="header-bar">
+        <h1>Workout Dashboard</h1>
+      </div>
 
+      {!showForm && (
+        <button className="primary-btn full" onClick={() => setShowForm(true)}>
+          Add
+        </button>
+      )}
 
-    {message && <p>{message}</p>}
+      {showForm && (
+        <WorkoutForm
+          onWorkoutAdded={() => {
+            setShowForm(false);
+            fetchWorkouts();
+          }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
 
-    <WorkoutForm onWorkoutAdded={fetchWorkouts} />
+      {message && <p className="msg">{message}</p>}
 
-    <h3>Your Workouts:</h3>
-    <ul className="workout-list">
-      {workouts.map((w) => (
-        <li key={w.workout_id} className="workout-item">
-          {editingId === w.workout_id ? (
-            <>
-              <input value={editedType} onChange={(e) => setEditedType(e.target.value)} />
-              <input type="number" value={editedSets} onChange={(e) => setEditedSets(Number(e.target.value))} placeholder="Sets" />
-              <input type="number" value={editedReps} onChange={(e) => setEditedReps(Number(e.target.value))} placeholder="Reps" />
-              <input value={editedWeight} onChange={(e) => setEditedWeight(e.target.value)} placeholder="e.g., 15 kg or 20 lb" />
-              <button className="workout-button" onClick={() => handleUpdate(w.workout_id)}>Save</button>
-              <button className="workout-button" onClick={() => setEditingId(null)}>Cancel</button>
-            </>
-          ) : (
-            <>
-              {w.type} — {w.sets} sets x {w.reps} reps — {w.weight}
-              <button className="workout-button" onClick={() => {
-                setEditingId(w.workout_id);
-                setEditedType(w.type);
-                setEditedSets(w.sets);
-                setEditedReps(w.reps);
-                setEditedWeight(w.weight);
-              }}>Edit</button>
-              <button className="workout-button" onClick={() => handleDelete(w.workout_id)}>Delete</button>
-            </>
-          )}
-        </li>
-      ))}
-    </ul>
-        <button className="logout-button" onClick={() => {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }}>
-      Logout
-    </button>
-  </div>
-);
+      <ul className="workout-list">
+        {workouts.map((w) => (
+          <li key={w.workout_id} className="workout-box">
+            {editingId === w.workout_id ? (
+              <div className="row">
+                <div className="column left">
+                  <input
+                    value={editedType}
+                    onChange={(e) => setEditedType(e.target.value)}
+                    placeholder="Type"
+                  />
+                  <input
+                    type="number"
+                    value={editedSets}
+                    onChange={(e) => setEditedSets(e.target.value)}
+                    placeholder="Sets"
+                  />
+                  <input
+                    type="number"
+                    value={editedReps}
+                    onChange={(e) => setEditedReps(e.target.value)}
+                    placeholder="Reps"
+                  />
+                </div>
+                <div className="column center">
+                  <input
+                    value={editedWeight}
+                    onChange={(e) => setEditedWeight(e.target.value)}
+                    placeholder="Weight"
+                  />
+                </div>
+                <div className="column right">
+                  <button className="primary-btn half" onClick={() => handleUpdate(w.workout_id)}>Save</button>
+                  <button className="primary-btn half" onClick={() => setEditingId(null)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="row">
+                <div className="column left">
+                  <div className="label">{w.type}</div>
+                  <div className="label">{w.sets} sets</div>
+                  <div className="label">{w.reps} reps</div>
+                </div>
+                <div className="column center">
+                  <div className="weight">{w.weight}</div>
+                </div>
+                <div className="column right">
+                  <button
+                    className="primary-btn half"
+                    onClick={() => {
+                      setEditingId(w.workout_id);
+                      setEditedType(w.type);
+                      setEditedSets(String(w.sets));
+                      setEditedReps(String(w.reps));
+                      setEditedWeight(w.weight);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="primary-btn half"
+                    onClick={() => handleDelete(w.workout_id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
 
+      <button
+        className="primary-btn full logout"
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }}
+      >
+        Logout
+      </button>
+    </div>
+  );
 }
