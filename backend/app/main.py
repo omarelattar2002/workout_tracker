@@ -1,18 +1,22 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
 from app.routes import workouts
 from app.auth import users
-from dotenv import load_dotenv
 from app.db.dynamo_client import create_workouts_table, create_users_table
-from fastapi.middleware.cors import CORSMiddleware
-
 
 load_dotenv()
 
 app = FastAPI()
 
+origins_env = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")
+ALLOWED_ORIGINS = [o.strip() for o in origins_env.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # your React frontend
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
