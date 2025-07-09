@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import WorkoutForm from "../components/WorkouForm";
 import "../styles/DashboardPage.css";
 
+
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 type Workout = {
   user_id: string;
   workout_id: string;
@@ -37,8 +40,8 @@ export default function DashboardPage() {
 
   const fetchWorkouts = () => {
     if (!token || !username) return;
-    fetch(`http://localhost:8000/workouts/${username}`, {
-      headers: { Authorization: `Bearer ${token}` }
+    fetch(`${API}/workouts/${username}`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((d) => setWorkouts(d.workouts || []))
@@ -47,18 +50,18 @@ export default function DashboardPage() {
 
   const handleUpdate = (id: string) => {
     if (!token || !username) return;
-    fetch(`http://localhost:8000/workouts/${username}/${id}`, {
+    fetch(`${API}/workouts/${username}/${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         new_type: editedType,
         new_sets: Number(editedSets),
         new_reps: Number(editedReps),
-        new_weight: editedWeight
-      })
+        new_weight: editedWeight,
+      }),
     })
       .then((r) => {
         if (!r.ok) throw new Error();
@@ -70,9 +73,9 @@ export default function DashboardPage() {
 
   const handleDelete = (id: string) => {
     if (!token || !username) return;
-    fetch(`http://localhost:8000/workouts/${username}/${id}`, {
+    fetch(`${API}/workouts/${username}/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => {
         if (!r.ok) throw new Error();
@@ -87,6 +90,7 @@ export default function DashboardPage() {
       return;
     }
     fetchWorkouts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (redirect) {
@@ -150,8 +154,18 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="column right">
-                  <button className="primary-btn half" onClick={() => handleUpdate(w.workout_id)}>Save</button>
-                  <button className="primary-btn half" onClick={() => setEditingId(null)}>Cancel</button>
+                  <button
+                    className="primary-btn half"
+                    onClick={() => handleUpdate(w.workout_id)}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className="primary-btn half"
+                    onClick={() => setEditingId(null)}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             ) : (

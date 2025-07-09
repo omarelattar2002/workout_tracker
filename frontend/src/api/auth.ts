@@ -1,11 +1,12 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/auth";
 
-export async function signup(username: string, password: string) {
-    return axios.post(`${API_URL}/signup`, { username, password });
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+export function login(username: string, password: string) {
+    return axios.post(`${API}/token`, { username, password });
 }
 
-export async function login(username: string, password: string) {
-    return axios.post(`${API_URL}/login`, { username, password });
+export function signup(username: string, password: string) {
+    return axios.post(`${API}/signup`, { username, password });
 }
