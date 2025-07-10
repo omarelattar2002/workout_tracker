@@ -90,7 +90,7 @@ export default function DashboardPage() {
       return;
     }
     fetchWorkouts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   return (

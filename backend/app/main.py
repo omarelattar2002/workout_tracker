@@ -11,7 +11,10 @@ load_dotenv()
 
 app = FastAPI()
 
-allowed_origins = os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+
+allowed_origins = [
+    "https://workout-tracker-rsra.onrender.com"
+]
 
 app.add_middleware(
     CORSMiddleware,

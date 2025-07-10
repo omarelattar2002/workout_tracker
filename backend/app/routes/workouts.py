@@ -61,7 +61,7 @@ def update_workout(
     if "Item" not in existing:
         raise HTTPException(status_code=404, detail="This workout does not exist")
 
-    # Dynamic update expression based on what's provided
+
     update_expr = ["#t = :t", "#s = :s", "#r = :r"]
     expr_attr_names = {"#t": "type", "#s": "sets", "#r": "reps"}
     expr_attr_values = {
