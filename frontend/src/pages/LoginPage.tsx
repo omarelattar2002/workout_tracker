@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login } from "../api/auth";
 import "../styles/AuthPages.css";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -40,6 +41,7 @@ export default function LoginPage() {
                 <button type="submit">Log In</button>
             </form>
             {message && <p>{message}</p>}
+            <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signup } from "../api/auth";
 import "../styles/AuthPages.css";
+import { Link } from "react-router-dom";
 
 export default function SignupPage() {
     const [username, setUsername] = useState("");
@@ -38,6 +39,7 @@ export default function SignupPage() {
                 <button type="submit">Sign Up</button>
             </form>
             {message && <p>{message}</p>}
+            <p>Already have an account? <Link to="/login">Log in here</Link></p>
         </div>
     );
 }
