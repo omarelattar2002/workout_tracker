@@ -1,47 +1,58 @@
-import { useState } from "react";
-import { login } from "../api/auth";
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import "../styles/AuthPages.css";
-import { Link } from "react-router-dom";
+
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export default function LoginPage() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await login(username, password);
-            const token = res.data.access_token;
-            localStorage.setItem("token", token);
-            setMessage("Login successful!");
-        } catch (error: any) {
-            setMessage(error.response?.data?.detail || "Login failed");
-        }
-    };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
-    return (
-        <div className="auth-container">
-            <h2>Log In</h2>
-            <form className="auth-form" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit">Log In</button>
-            </form>
-            {message && <p>{message}</p>}
-            <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
-        </div>
-    );
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/auth/login`, {
+        username,
+        password,
+      });
+      localStorage.setItem("token", response.data.access_token);
+      navigate("/dashboard");
+    } catch {
+      setError("Login failed. Check your credentials.");
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <h2>Log In</h2>
+      <form onSubmit={handleLogin}>
+        <input
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Log In</button>
+      </form>
+      {error && <p className="error">{error}</p>}
+      <p>Don't have an account? <Link to="/signup">Sign up here</Link>.</p>
+    </div>
+  );
 }

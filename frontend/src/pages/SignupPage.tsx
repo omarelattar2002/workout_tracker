@@ -1,45 +1,62 @@
-import { useState } from "react";
-import { signup } from "../api/auth";
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import "../styles/AuthPages.css";
-import { Link } from "react-router-dom";
+
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export default function SignupPage() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await signup(username, password);
-            setMessage("Signup successful! You can now log in.");
-        } catch (error: any) {
-            setMessage(error.response?.data?.detail || "Signup failed");
-        }
-    };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
-    return (
-        <div className="auth-container">
-            <h2>Sign Up</h2>
-            <form className="auth-form" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit">Sign Up</button>
-            </form>
-            {message && <p>{message}</p>}
-            <p>Already have an account? <Link to="/login">Log in here</Link></p>
-        </div>
-    );
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/auth/signup`, {
+        username,
+        password,
+      });
+      const loginRes = await axios.post(`${API}/auth/login`, {
+        username,
+        password,
+      });
+      localStorage.setItem("token", loginRes.data.access_token);
+      navigate("/dashboard");
+    } catch {
+      setError("Signup failed. Username may already exist.");
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <h2>Sign Up</h2>
+      <form onSubmit={handleSignup}>
+        <input
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Sign Up</button>
+      </form>
+      {error && <p className="error">{error}</p>}
+      <p>Already have an account? <Link to="/login">Log in here</Link>.</p>
+    </div>
+  );
 }

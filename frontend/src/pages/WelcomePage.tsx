@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/WelcomePage.css";
 
 export default function WelcomePage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
   return (
     <div className="welcome-container">
       <h1 className="welcome-title">Welcome to Workout Tracker</h1>

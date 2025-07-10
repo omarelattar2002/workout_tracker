@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import WorkoutForm from "../components/WorkouForm";
 import "../styles/DashboardPage.css";
-
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -17,17 +17,15 @@ type Workout = {
 export default function DashboardPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [message, setMessage] = useState("");
-  const [redirect, setRedirect] = useState(false);
   const [showForm, setShowForm] = useState(false);
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedType, setEditedType] = useState("");
   const [editedSets, setEditedSets] = useState("");
   const [editedReps, setEditedReps] = useState("");
   const [editedWeight, setEditedWeight] = useState("");
 
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const username = getUsernameFromToken(token);
 
   function getUsernameFromToken(tok: string | null): string | null {
     if (!tok) return null;
@@ -37,6 +35,8 @@ export default function DashboardPage() {
       return null;
     }
   }
+
+  const username = getUsernameFromToken(token);
 
   const fetchWorkouts = () => {
     if (!token || !username) return;
@@ -86,17 +86,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!token || !username) {
-      setRedirect(true);
+      navigate("/login");
       return;
     }
     fetchWorkouts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (redirect) {
-    window.location.href = "/login";
-    return null;
-  }
 
   return (
     <div className="dashboard-container">
@@ -208,7 +203,7 @@ export default function DashboardPage() {
         className="primary-btn full logout"
         onClick={() => {
           localStorage.removeItem("token");
-          window.location.href = "/login";
+          navigate("/login");
         }}
       >
         Logout
