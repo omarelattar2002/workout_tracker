@@ -12,13 +12,7 @@ load_dotenv()
 app = FastAPI()
 
 
-allowed_origins = [
-    "https://workout-tracker-1-zqp2.onrender.com",
-    "capacitor://localhost",  
-    "http://localhost",
-    "http://10.0.2.2:5173"
-]
-
+allowed_origins = os.getenv("CORS_ALLOW_ORIGINS", "").split(",")
 
 
 
