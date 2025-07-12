@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "../styles/DashboardPage.css";
 
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 type Props = {
   onWorkoutAdded: () => void;
   onCancel: () => void;
@@ -37,7 +39,7 @@ export default function WorkoutForm({ onWorkoutAdded, onCancel }: Props) {
       return;
     }
 
-    fetch("http://localhost:8000/workouts", {
+    fetch(`${API}/workouts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
