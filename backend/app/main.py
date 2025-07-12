@@ -7,10 +7,12 @@ from app.db.dynamo_client import create_workouts_table, create_users_table
 app = FastAPI()
 
 allowed_origins = [
-    "https://workout-tracker-1-zqp2.onrender.com",
-    "capacitor://localhost",              
-    "http://localhost:3000"                         
+    "https://workout-tracker-1-zqp2.onrender.com",   
+    "https://workout-tracker-rsra.onrender.com",     
+    "capacitor://localhost",
+    "http://localhost:3000"
 ]
+
 
 
 app.add_middleware(
