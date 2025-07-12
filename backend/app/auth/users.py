@@ -81,3 +81,8 @@ def login(user: UserSignup):
     )
 
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/auth/debug-users")
+def debug_users():
+    return users_table.scan().get("Items", [])
