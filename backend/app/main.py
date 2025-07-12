@@ -12,7 +12,10 @@ load_dotenv()
 app = FastAPI()
 
 
-allowed_origins = ["*"]  # Allow all origins TEMPORARILY
+allowed_origins = [
+    "https://workout-tracker-1-zqp2.onrender.com"
+]
+
 
 
 app.add_middleware(
