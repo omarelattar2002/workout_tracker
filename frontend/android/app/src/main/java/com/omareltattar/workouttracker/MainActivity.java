@@ -1,4 +1,4 @@
-package com.omar.workouttracker;
+package com.omareltattar.workouttracker;
 
 import com.getcapacitor.BridgeActivity;
 
