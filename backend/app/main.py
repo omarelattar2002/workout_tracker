@@ -10,7 +10,9 @@ allowed_origins = [
     "https://workout-tracker-1-zqp2.onrender.com",   
     "https://workout-tracker-rsra.onrender.com",     
     "capacitor://localhost",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "http://10.0.2.2:3000",
+    "http://localhost",
 ]
 
 
