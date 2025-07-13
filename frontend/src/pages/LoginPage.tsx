@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/AuthPages.css";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API = "https://workout-tracker-1-zqp2.onrender.com";
 
 export default function LoginPage() {
   const navigate = useNavigate();
