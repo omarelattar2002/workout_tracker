@@ -9,6 +9,7 @@ app = FastAPI()
 allowed_origins = [
     "https://workout-tracker-1-zqp2.onrender.com",
     "https://workout-tracker-rsra.onrender.com",
+    "https://localhost",
     "capacitor://localhost",
     "http://localhost:3000",
     "http://localhost",
