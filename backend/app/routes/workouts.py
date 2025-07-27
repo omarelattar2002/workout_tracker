@@ -1,49 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from boto3.dynamodb.conditions import Key
-from app.db.dynamo_client import dynamodb
 from app.auth.users import get_current_user
+from app.services.workout_service import WorkoutService
 
 router = APIRouter()
+service = WorkoutService()
 
-class Workout(BaseModel):
-    user_id: str
-    workout_id: str
+
+class WorkoutBase(BaseModel):
     type: str
     sets: int
-    reps:int
-    weight: str
+    reps: int
+    weight: str | None = None
 
-class UpdateWorkout(BaseModel):
-    new_type:str
-    new_sets:int
-    new_reps:int
-    new_weight: str | None = None
+class Workout(WorkoutBase):
+    user_id: str
+    workout_id: str
+
+class UpdateWorkout(WorkoutBase):
+    pass  
 
 @router.post("/workouts")
 def create_workout(workout: Workout, current_user: str = Depends(get_current_user)):
     if workout.user_id != current_user:
         raise HTTPException(status_code=403, detail="You can only add workouts to your own account")
 
-    table = dynamodb.Table("workouts")
-    table.put_item(Item={
-        "user_id": workout.user_id,
-        "workout_id": workout.workout_id,
-        "type": workout.type,
-        "sets": workout.sets,
-        "reps" : workout.reps,
-        "weight":workout.weight
-    })
-    return {"message": "Workout created successfully"}
+    return service.create_workout(workout.dict())
 
 @router.get("/workouts/{user_id}")
 def get_workouts(user_id: str, current_user: str = Depends(get_current_user)):
     if user_id != current_user:
         raise HTTPException(status_code=403, detail="Not authorized to access this user's workouts")
 
-    table = dynamodb.Table("workouts")
-    response = table.query(KeyConditionExpression=Key("user_id").eq(user_id))
-    return {"workouts": response.get("Items", [])}
+    return {"workouts": service.get_workouts(user_id)}
 
 @router.put("/workouts/{user_id}/{workout_id}")
 def update_workout(
@@ -55,27 +44,23 @@ def update_workout(
     if user_id != current_user:
         raise HTTPException(status_code=403, detail="Not authorized to update this workout")
 
-    table = dynamodb.Table("workouts")
-    existing = table.get_item(Key={"user_id": user_id, "workout_id": workout_id})
+    
+    existing_items = service.get_workouts(user_id)
+    match = next((w for w in existing_items if w["workout_id"] == workout_id), None)
 
-    if "Item" not in existing:
+    if not match:
         raise HTTPException(status_code=404, detail="This workout does not exist")
-
 
     update_expr = ["#t = :t", "#s = :s", "#r = :r"]
     expr_attr_names = {"#t": "type", "#s": "sets", "#r": "reps"}
-    expr_attr_values = {
-        ":t": update.new_type,
-        ":s": update.new_sets,
-        ":r": update.new_reps
-    }
+    expr_attr_values = {":t": update.type, ":s": update.sets, ":r": update.reps}
 
-    if update.new_weight is not None:
+    if update.weight is not None:
         update_expr.append("#w = :w")
         expr_attr_names["#w"] = "weight"
-        expr_attr_values[":w"] = update.new_weight
+        expr_attr_values[":w"] = update.weight
 
-    table.update_item(
+    service.table.update_item(
         Key={"user_id": user_id, "workout_id": workout_id},
         UpdateExpression="SET " + ", ".join(update_expr),
         ExpressionAttributeNames=expr_attr_names,
@@ -89,11 +74,11 @@ def delete_workout(user_id: str, workout_id: str, current_user: str = Depends(ge
     if user_id != current_user:
         raise HTTPException(status_code=403, detail="Not authorized to delete this workout")
 
-    table = dynamodb.Table("workouts")
-    existing = table.get_item(Key={"user_id": user_id, "workout_id": workout_id})
+    existing_items = service.get_workouts(user_id)
+    match = next((w for w in existing_items if w["workout_id"] == workout_id), None)
 
-    if "Item" not in existing:
+    if not match:
         raise HTTPException(status_code=404, detail="Workout not found")
 
-    table.delete_item(Key={"user_id": user_id, "workout_id": workout_id})
+    service.table.delete_item(Key={"user_id": user_id, "workout_id": workout_id})
     return {"message": "Workout has been deleted"}
