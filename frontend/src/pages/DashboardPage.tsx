@@ -57,10 +57,10 @@ export default function DashboardPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        new_type: editedType,
-        new_sets: Number(editedSets),
-        new_reps: Number(editedReps),
-        new_weight: editedWeight,
+        type: editedType,
+        sets: Number(editedSets),
+        reps: Number(editedReps),
+        weight: editedWeight,
       }),
     })
       .then((r) => {
