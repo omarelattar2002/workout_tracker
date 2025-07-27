@@ -4,6 +4,10 @@ from app.routes import workouts
 from app.auth import users
 from app.db.dynamo_client import create_workouts_table, create_users_table
 
+from dotenv import load_dotenv
+load_dotenv()
+
+
 app = FastAPI()
 
 allowed_origins = [

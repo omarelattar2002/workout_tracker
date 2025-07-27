@@ -18,10 +18,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # JWT settings
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "secret123")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 # Token auth
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+
 
 # Request model
 class UserSignup(BaseModel):
@@ -37,6 +38,8 @@ def create_access_token(data: dict, expires_delta: timedelta):
 
 # Decode JWT
 def get_current_user(token: str = Depends(oauth2_scheme)):
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -45,6 +48,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return username
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+
 
 # Signup route
 @router.post("/auth/signup")

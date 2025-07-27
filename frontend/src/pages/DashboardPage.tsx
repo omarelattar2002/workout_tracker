@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import WorkoutForm from "../components/WorkouForm";
 import "../styles/DashboardPage.css";
+import { filterWorkouts, downloadReport } from "../api/workouts";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 type Workout = {
-  user_id: string;
   workout_id: string;
   type: string;
   sets: number;
@@ -23,24 +23,14 @@ export default function DashboardPage() {
   const [editedSets, setEditedSets] = useState("");
   const [editedReps, setEditedReps] = useState("");
   const [editedWeight, setEditedWeight] = useState("");
+  const [filterType, setFilterType] = useState("");
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  function getUsernameFromToken(tok: string | null): string | null {
-    if (!tok) return null;
-    try {
-      return JSON.parse(atob(tok.split(".")[1])).sub;
-    } catch {
-      return null;
-    }
-  }
-
-  const username = getUsernameFromToken(token);
-
   const fetchWorkouts = () => {
-    if (!token || !username) return;
-    fetch(`${API}/workouts/${username}`, {
+    if (!token) return;
+    fetch(`${API}/workouts`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -49,8 +39,8 @@ export default function DashboardPage() {
   };
 
   const handleUpdate = (id: string) => {
-    if (!token || !username) return;
-    fetch(`${API}/workouts/${username}/${id}`, {
+    if (!token) return;
+    fetch(`${API}/workouts/${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -72,8 +62,8 @@ export default function DashboardPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (!token || !username) return;
-    fetch(`${API}/workouts/${username}/${id}`, {
+    if (!token) return;
+    fetch(`${API}/workouts/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -84,19 +74,57 @@ export default function DashboardPage() {
       .catch(() => setMessage("Failed to delete workout"));
   };
 
+  const handleFilter = () => {
+    if (!token) return;
+    filterWorkouts(token, filterType)
+      .then((res) => setWorkouts(res.data.workouts))
+      .catch(() => setMessage("Failed to filter workouts"));
+  };
+
+  const handleReport = () => {
+    if (!token) return;
+    downloadReport(token)
+      .then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "workout_report.csv");
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch(() => setMessage("Failed to download report"));
+  };
+
   useEffect(() => {
-    if (!token || !username) {
+    if (!token) {
       navigate("/login");
       return;
     }
     fetchWorkouts();
-
   }, []);
 
   return (
     <div className="dashboard-container">
       <div className="header-bar">
         <h1>Workout Dashboard</h1>
+      </div>
+
+      <div className="filter-bar">
+        <input
+          type="text"
+          placeholder="Filter by type"
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+        />
+        <button className="primary-btn half" onClick={handleFilter}>
+          Filter
+        </button>
+        <button className="primary-btn half" onClick={fetchWorkouts}>
+          Reset
+        </button>
+        <button className="primary-btn half" onClick={handleReport}>
+          Generate Report
+        </button>
       </div>
 
       {!showForm && (
@@ -123,44 +151,16 @@ export default function DashboardPage() {
             {editingId === w.workout_id ? (
               <div className="row">
                 <div className="column left">
-                  <input
-                    value={editedType}
-                    onChange={(e) => setEditedType(e.target.value)}
-                    placeholder="Type"
-                  />
-                  <input
-                    type="number"
-                    value={editedSets}
-                    onChange={(e) => setEditedSets(e.target.value)}
-                    placeholder="Sets"
-                  />
-                  <input
-                    type="number"
-                    value={editedReps}
-                    onChange={(e) => setEditedReps(e.target.value)}
-                    placeholder="Reps"
-                  />
+                  <input value={editedType} onChange={(e) => setEditedType(e.target.value)} placeholder="Type" />
+                  <input type="number" value={editedSets} onChange={(e) => setEditedSets(e.target.value)} placeholder="Sets" />
+                  <input type="number" value={editedReps} onChange={(e) => setEditedReps(e.target.value)} placeholder="Reps" />
                 </div>
                 <div className="column center">
-                  <input
-                    value={editedWeight}
-                    onChange={(e) => setEditedWeight(e.target.value)}
-                    placeholder="Weight"
-                  />
+                  <input value={editedWeight} onChange={(e) => setEditedWeight(e.target.value)} placeholder="Weight" />
                 </div>
                 <div className="column right">
-                  <button
-                    className="primary-btn half"
-                    onClick={() => handleUpdate(w.workout_id)}
-                  >
-                    Save
-                  </button>
-                  <button
-                    className="primary-btn half"
-                    onClick={() => setEditingId(null)}
-                  >
-                    Cancel
-                  </button>
+                  <button className="primary-btn half" onClick={() => handleUpdate(w.workout_id)}>Save</button>
+                  <button className="primary-btn half" onClick={() => setEditingId(null)}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -174,24 +174,14 @@ export default function DashboardPage() {
                   <div className="weight">{w.weight}</div>
                 </div>
                 <div className="column right">
-                  <button
-                    className="primary-btn half"
-                    onClick={() => {
-                      setEditingId(w.workout_id);
-                      setEditedType(w.type);
-                      setEditedSets(String(w.sets));
-                      setEditedReps(String(w.reps));
-                      setEditedWeight(w.weight);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="primary-btn half"
-                    onClick={() => handleDelete(w.workout_id)}
-                  >
-                    Delete
-                  </button>
+                  <button className="primary-btn half" onClick={() => {
+                    setEditingId(w.workout_id);
+                    setEditedType(w.type);
+                    setEditedSets(String(w.sets));
+                    setEditedReps(String(w.reps));
+                    setEditedWeight(w.weight);
+                  }}>Edit</button>
+                  <button className="primary-btn half" onClick={() => handleDelete(w.workout_id)}>Delete</button>
                 </div>
               </div>
             )}
